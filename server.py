@@ -89,22 +89,21 @@ backend = Backend()
 # TCP server #
 ##############
 
-class RequestHandler(socketserver.StreamRequestHandler):
-    def handle(self):
-        input_data = self.rfile.read().decode("utf-8")
-
-        job_id = str(int(time.time()))
-        backend.jobs[job_id] = {'status': 'pending', 'progress': '', 'zip_file': ''}
-
-
-        self.wfile.write(f"http://localhost:5000/status/{job_id}".encode('utf-8'))
-
-        thread = threading.Thread(target=backend.run_docker_job, args=(job_id, input_data))
-        thread.start()
-
-
 def start_tcp_server(host, port):
     print(f"Start TCP server on {host}:{port}")
+
+    class RequestHandler(socketserver.StreamRequestHandler):
+        def handle(self):
+            input_data = self.rfile.read().decode("utf-8")
+
+            job_id = str(int(time.time()))
+            backend.jobs[job_id] = {'status': 'pending', 'progress': '', 'zip_file': ''}
+
+
+            self.wfile.write(f"http://{host}:{port}/status/{job_id}".encode('utf-8'))
+
+            thread = threading.Thread(target=backend.run_docker_job, args=(job_id, input_data))
+            thread.start()
 
     server = socketserver.TCPServer((host, port), RequestHandler)
     server.serve_forever()
