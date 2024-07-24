@@ -24,7 +24,7 @@ def parse_job_options(input_data):
         if line[0] != "#":
             break
 
-        splits = line.split(' ')
+        splits = line[1:].strip().split(' ')
         if len(splits) == 2 and splits[0] in valid_options:
             options[splits[0]] = splits[1]
 
