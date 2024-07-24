@@ -28,6 +28,9 @@ def parse_job_options(input_data):
         if len(splits) == 2 and splits[0] in valid_options:
             options[splits[0]] = splits[1]
 
+    if not all([opt in options for opt in valid_options]):
+        return None
+
     return options
 
 
@@ -38,9 +41,13 @@ class Backend:
         self.jobs = {}
 
     def run_docker_job(self, job_id, input_data):
-        with tempfile.TemporaryDirectory() as job_dir:
-            env_vars = parse_job_options(input_data)
+        env_vars = parse_job_options(input_data)
 
+        if env_vars is None:
+            self.jobs[job_id]['status'] = 'failed (invalid config)'
+            return
+
+        with tempfile.TemporaryDirectory() as job_dir:
             input_file = os.path.join(job_dir, "script.py")
             with open(input_file, 'wb') as f:
                 f.write(input_data)
